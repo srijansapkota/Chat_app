@@ -121,9 +121,8 @@ export const updateProfile = async (req, res) => {
 export const checkAuth = (req, res) => {
   try {
     res.staus(200).json(req.user);
-}catch (error) {
+  } catch (error) {
     console.error("Error checking authentication:", error);
     res.status(500).json({ message: "Internal server error" });
   }
-
 }

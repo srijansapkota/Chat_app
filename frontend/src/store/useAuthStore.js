@@ -1,7 +1,10 @@
-// src/store/useAuthStore.js
 import { create } from "zustand";
-import { axiosInstance } from "../lib/axios";
+import { axiosInstance } from "../lib/axios.js";
 import toast from "react-hot-toast";
+import { io } from "socket.io-client";
+
+const BASE_URL =
+  import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
 
 export const useAuthStore = create((set, get) => ({
   authUser: null,
@@ -9,20 +12,17 @@ export const useAuthStore = create((set, get) => ({
   isLoggingIn: false,
   isUpdatingProfile: false,
   isCheckingAuth: true,
+  onlineUsers: [],
+  socket: null,
 
   checkAuth: async () => {
     try {
       const res = await axiosInstance.get("/auth/check");
-      // Axios automatically wraps the response data in `res.data`
-      // and only resolves if the status is 2xx.
+
       set({ authUser: res.data });
+      get().connectSocket();
     } catch (error) {
-      // Axios error objects for non-2xx responses have a `response` property
-      // which contains `data`, `status`, `headers`.
-      console.log(
-        "Error in checkAuth:",
-        error.response?.data?.message || error.message
-      );
+      console.log("Error in checkAuth:", error);
       set({ authUser: null });
     } finally {
       set({ isCheckingAuth: false });
@@ -33,21 +33,11 @@ export const useAuthStore = create((set, get) => ({
     set({ isSigningUp: true });
     try {
       const res = await axiosInstance.post("/auth/signup", data);
-      // If we reach here, Axios considers the request successful (2xx status)
       set({ authUser: res.data });
       toast.success("Account created successfully");
+      get().connectSocket();
     } catch (error) {
-      // This block is executed if Axios receives a non-2xx status code from the server.
-      // `error.response.data.message` is the standard way to get a server-provided error message.
-      console.error(
-        "Signup error:",
-        error.response?.data?.message || error.message
-      );
-      toast.error(
-        error.response?.data?.message || "Signup failed! Please try again."
-      );
-      // Ensure authUser is null if signup fails
-      set({ authUser: null });
+      toast.error(error.response.data.message);
     } finally {
       set({ isSigningUp: false });
     }
@@ -59,15 +49,10 @@ export const useAuthStore = create((set, get) => ({
       const res = await axiosInstance.post("/auth/login", data);
       set({ authUser: res.data });
       toast.success("Logged in successfully");
+
+      get().connectSocket();
     } catch (error) {
-      console.error(
-        "Login error:",
-        error.response?.data?.message || error.message
-      );
-      toast.error(
-        error.response?.data?.message || "Login failed! Please try again."
-      );
-      set({ authUser: null }); // Ensure authUser is null if login fails
+      toast.error(error.response.data.message);
     } finally {
       set({ isLoggingIn: false });
     }
@@ -78,12 +63,9 @@ export const useAuthStore = create((set, get) => ({
       await axiosInstance.post("/auth/logout");
       set({ authUser: null });
       toast.success("Logged out successfully");
+      get().disconnectSocket();
     } catch (error) {
-      console.error(
-        "Logout error:",
-        error.response?.data?.message || error.message
-      );
-      toast.error(error.response?.data?.message || "Logout failed");
+      toast.error(error.response.data.message);
     }
   },
 
@@ -99,5 +81,26 @@ export const useAuthStore = create((set, get) => ({
     } finally {
       set({ isUpdatingProfile: false });
     }
+  },
+
+  connectSocket: () => {
+    const { authUser } = get();
+    if (!authUser || get().socket?.connected) return;
+
+    const socket = io(BASE_URL, {
+      query: {
+        userId: authUser._id,
+      },
+    });
+    socket.connect();
+
+    set({ socket: socket });
+
+    socket.on("getOnlineUsers", (userIds) => {
+      set({ onlineUsers: userIds });
+    });
+  },
+  disconnectSocket: () => {
+    if (get().socket?.connected) get().socket.disconnect();
   },
 }));
