@@ -13,7 +13,7 @@ export const useChatStore = create((set, get) => ({
   getUsers: async () => {
     set({ isUsersLoading: true });
     try {
-      const res = await axiosInstance.get("/messages/users");  // Remove the /api prefix
+      const res = await axiosInstance.get("/messages/users");  
       set({ users: res.data });
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -35,6 +35,8 @@ export const useChatStore = create((set, get) => ({
       set({ isMessagesLoading: false });
     }
   },
+
+  
   sendMessage: async (messageData) => {
     const { selectedUser, messages } = get();
     try {
