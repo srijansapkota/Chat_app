@@ -1,11 +1,11 @@
-import { useChatStore } from "../store/useChatStore";
-import { useEffect, useRef } from "react";
+import { useChatStore } from '../store/useChatStore';
+import { useEffect, useRef } from 'react';
 
-import ChatHeader from "./ChatHeader";
-import MessageInput from "./MessageInput";
-import MessageSkeleton from "./skeletons/MessageSkeleton";
-import { useAuthStore } from "../store/useAuthStore";
-import { formatMessageTime } from "../lib/utils";
+import ChatHeader from './ChatHeader';
+import MessageInput from './MessageInput';
+import MessageSkeleton from './skeletons/MessageSkeleton';
+import { useAuthStore } from '../store/useAuthStore';
+import { formatMessageTime } from '../lib/utils';
 
 const ChatContainer = () => {
   const {
@@ -16,17 +16,21 @@ const ChatContainer = () => {
     subscribeToMessages,
     unsubscribeFromMessages,
   } = useChatStore();
+  const socket = useAuthStore((state) => state.socket);
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
 
   useEffect(() => {
+    if (!selectedUser?._id) return;
+
     getMessages(selectedUser._id);
 
     subscribeToMessages();
 
     return () => unsubscribeFromMessages();
   }, [
-    selectedUser._id,
+    selectedUser?._id,
+    socket,
     getMessages,
     subscribeToMessages,
     unsubscribeFromMessages,
@@ -34,7 +38,7 @@ const ChatContainer = () => {
 
   useEffect(() => {
     if (messageEndRef.current && messages) {
-      messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+      messageEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
 
@@ -57,7 +61,7 @@ const ChatContainer = () => {
           <div
             key={message._id}
             className={`chat ${
-              message.senderId === authUser._id ? "chat-end" : "chat-start"
+              message.senderId === authUser._id ? 'chat-end' : 'chat-start'
             }`}
             ref={messageEndRef}
           >
@@ -66,8 +70,8 @@ const ChatContainer = () => {
                 <img
                   src={
                     message.senderId === authUser._id
-                      ? authUser.profilePic || "/avatar.png"
-                      : selectedUser.profilePic || "/avatar.png"
+                      ? authUser.profilePic || '/avatar.png'
+                      : selectedUser.profilePic || '/avatar.png'
                   }
                   alt="profile pic"
                 />
