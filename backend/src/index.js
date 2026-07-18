@@ -7,6 +7,7 @@ import messageRoutes from './routes/message.route.js';
 import cors from 'cors';
 import { app, server } from './lib/socket.js';
 import path from 'path';
+import fs from 'fs';
 
 dotenv.config();
 const PORT = process.env.PORT || 5001;
@@ -34,11 +35,17 @@ app.use(
 
 app.use('/api/auth', authRoutes);
 app.use('/api/messages', messageRoutes);
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
+const frontendDistPath = path.join(__dirname, '../frontend/dist');
+
+if (process.env.NODE_ENV === 'production' && fs.existsSync(frontendDistPath)) {
+  app.use(express.static(frontendDistPath));
   app.get(/.*/, (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend', 'dist', 'index.html'));
+    res.sendFile(path.join(frontendDistPath, 'index.html'));
+  });
+} else {
+  app.get('/', (req, res) => {
+    res.send('API is running...');
   });
 }
 
