@@ -1,6 +1,7 @@
 import { generateToken } from '../lib/utils.js';
 import User from '../models/user.model.js';
 import bcrypt from 'bcryptjs';
+import cloudinary from '../lib/cloudinary.js';
 
 export const signup = async (req, res) => {
   const { email, fullName, password, profilePic } = req.body;
@@ -29,9 +30,15 @@ export const signup = async (req, res) => {
     });
 
     if (newUser) {
-      generateToken(newUser._id, res);
       await newUser.save();
+     
+      const token = generateToken(newUser._id, res);
       res.status(201).json({
+        _id: newUser._id,
+        fullName: newUser.fullName,
+        email: newUser.email,
+        profilePic: newUser.profilePic,
+        token, 
         message: 'User created successfully',
       });
     } else {
@@ -62,13 +69,14 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: 'Invalid password' });
     }
 
-    generateToken(user._id, res);
+    const token = generateToken(user._id, res);
 
     res.status(200).json({
       _id: user._id,
       fullName: user.fullName,
       email: user.email,
       profilePic: user.profilePic,
+      token, 
       message: 'Login successful',
     });
   } catch (error) {
