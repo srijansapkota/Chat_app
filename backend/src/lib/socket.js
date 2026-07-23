@@ -19,7 +19,7 @@ const io = new Server(server, {
   },
 });
 
-export function getReceiverSocketId(userId) {
+export function getSocketId(userId) {
   if (!userId) return null;
   return userSocketMap[String(userId)] || null;
 }
@@ -33,15 +33,23 @@ io.on('connection', (socket) => {
   const userId = socket.handshake.query.userId
     ? String(socket.handshake.query.userId)
     : null;
-  if (userId) userSocketMap[userId] = socket.id;
 
+  socket.on('typing', ({ receiverId }) => {
+    const receiverSocketId = getSocketId(receiverId);
+    if (receiverSocketId) io.to(receiverSocketId).emit('typing', { senderId: userId });
+  });
+
+  socket.on('stopTyping', ({ receiverId }) => {
+    const receiverSocketId = getSocketId(receiverId);
+    if (receiverSocketId) io.to(receiverSocketId).emit('stopTyping', { senderId: userId });
+  });
+
+  if (userId) userSocketMap[userId] = socket.id;
   io.emit('getOnlineUsers', Object.keys(userSocketMap));
 
   socket.on('disconnect', () => {
     console.log('A user disconnected', socket.id);
-    if (userId) {
-      delete userSocketMap[userId];
-    }
+    if (userId) delete userSocketMap[userId];
     io.emit('getOnlineUsers', Object.keys(userSocketMap));
   });
 });

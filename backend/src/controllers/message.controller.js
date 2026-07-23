@@ -1,7 +1,7 @@
 import User from '../models/user.model.js';
 import Message from '../models/message.model.js';
 import cloudinary from '../lib/cloudinary.js';
-import { getReceiverSocketId, io } from '../lib/socket.js';
+import { getSocketId, io } from '../lib/socket.js';
 
 export const getUsersForSidebar = async (req, res) => {
   try {
@@ -57,8 +57,10 @@ export const sendMessage = async (req, res) => {
 
     await newMessage.save();
 
-    const receiverSocketId = getReceiverSocketId(String(receiverId));
+    const receiverSocketId = getSocketId(String(receiverId));
     if (receiverSocketId) {
+      newMessage.status = 'delivered';
+      await newMessage.save();
       io.to(receiverSocketId).emit('newMessage', newMessage);
     }
 
@@ -68,3 +70,27 @@ export const sendMessage = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+export const markMessageAsRead = async (req, res) => {
+  try {
+    const { id: senderId } = req.params;
+    const currentUserId = req.user._id;
+    
+    await Message.updateMany(
+      { senderId, receiverId: currentUserId,  status: { $ne: 'read' }  },
+      { $set: { status: 'read' } },
+    );
+    const senderSocketId = getSocketId(String(senderId))
+    if (senderSocketId) {
+      io.to(senderSocketId).emit('messagesRead', { senderId: currentUserId });
+    }
+  
+    res.status(200).json({ message: 'Messages marked as read' });
+  } catch (error) {
+    console.log('Error in markMessageAsRead controller: ', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+
