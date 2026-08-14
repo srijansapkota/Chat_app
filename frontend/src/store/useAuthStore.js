@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { axiosInstance } from "../lib/axios.js";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
+import { AxiosError } from "axios";
 
 const BASE_URL =
   import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
@@ -37,7 +38,11 @@ export const useAuthStore = create((set, get) => ({
       toast.success("Account created successfully");
       get().connectSocket();
     } catch (error) {
-      toast.error(error.response.data.message);
+      if (error instanceof AxiosError) {
+          toast.error(error.response?.data?.message || "Signup failed");
+      } else {
+        toast.error("Client side error")
+      }
     } finally {
       set({ isSigningUp: false });
     }
@@ -52,7 +57,11 @@ export const useAuthStore = create((set, get) => ({
 
       get().connectSocket();
     } catch (error) {
-      toast.error(error.response.data.message);
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data?.message || "Login failed on server issue");
+      } else {
+        toast.error("Check your credentials and try again")
+      }
     } finally {
       set({ isLoggingIn: false });
     }
