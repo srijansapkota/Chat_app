@@ -1,31 +1,11 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { useAuthStore } from "../store/useAuthStore";
-import {
-  Eye,
-  EyeOff,
-  Loader2,
-  Lock,
-  Mail,
-  MessageSquare,
-  User,
-} from "lucide-react";
 import { Link } from "react-router-dom";
+import { Eye, EyeOff, Loader2, Lock, Mail, MessageSquare, User } from "lucide-react";
 import AuthImagePattern from "../components/AuthImagePattern";
+import { useSignUpPage } from "../hooks/useSignUpPage";
 
 const SignUpPage = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const { signup, isSigningUp } = useAuthStore();
-  
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
-
-  const onSubmit = (data) => {
-    signup(data);
-  };
+  const { errors, showPassword, toggleShowPassword, register, handleSubmit, isSigningUp, onSubmit } =
+    useSignUpPage();
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
@@ -33,16 +13,11 @@ const SignUpPage = () => {
         <div className="w-full max-w-md space-y-8">
           <div className="text-center mb-8">
             <div className="flex flex-col items-center gap-2 group">
-              <div
-                className="size-12 rounded-xl bg-primary/10 flex items-center justify-center 
-              group-hover:bg-primary/20 transition-colors"
-              >
-                <MessageSquare className="size-6 text-primary" />   
+              <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                <MessageSquare className="size-6 text-primary" />
               </div>
               <h1 className="text-2xl font-bold mt-2">Create Account</h1>
-              <p className="text-base-content/60">
-                Get started with your free account
-              </p>
+              <p className="text-base-content/60">Get started with your free account</p>
             </div>
           </div>
 
@@ -57,22 +32,15 @@ const SignUpPage = () => {
                 </div>
                 <input
                   type="text"
-                  className={`input input-bordered w-full pl-10 ${
-                    errors.fullName ? "input-error" : ""
-                  }`}
+                  className={`input input-bordered w-full pl-10 ${errors.fullName ? "input-error" : ""}`}
                   placeholder="John Doe"
-                  {...register("fullName", { 
+                  {...register("fullName", {
                     required: "Full name is required",
-                    minLength: {
-                      value: 2,
-                      message: "Full name must be at least 2 characters"
-                    }
+                    minLength: { value: 2, message: "Full name must be at least 2 characters" },
                   })}
                 />
               </div>
-              {errors.fullName && (
-                <p className="text-error text-sm mt-1">{errors.fullName.message}</p>
-              )}
+              {errors.fullName && <p className="text-error text-sm mt-1">{errors.fullName.message}</p>}
             </div>
 
             <div className="form-control">
@@ -85,22 +53,18 @@ const SignUpPage = () => {
                 </div>
                 <input
                   type="email"
-                  className={`input input-bordered w-full pl-10 ${
-                    errors.email ? "input-error" : ""
-                  }`}
+                  className={`input input-bordered w-full pl-10 ${errors.email ? "input-error" : ""}`}
                   placeholder="you@example.com"
-                  {...register("email", { 
+                  {...register("email", {
                     required: "Email is required",
                     pattern: {
                       value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: "Invalid email format"
-                    }
+                      message: "Invalid email format",
+                    },
                   })}
                 />
               </div>
-              {errors.email && (
-                <p className="text-error text-sm mt-1">{errors.email.message}</p>
-              )}
+              {errors.email && <p className="text-error text-sm mt-1">{errors.email.message}</p>}
             </div>
 
             <div className="form-control">
@@ -113,22 +77,17 @@ const SignUpPage = () => {
                 </div>
                 <input
                   type={showPassword ? "text" : "password"}
-                  className={`input input-bordered w-full pl-10 ${
-                    errors.password ? "input-error" : ""
-                  }`}
+                  className={`input input-bordered w-full pl-10 ${errors.password ? "input-error" : ""}`}
                   placeholder="••••••••"
-                  {...register("password", { 
+                  {...register("password", {
                     required: "Password is required",
-                    minLength: {
-                      value: 6,
-                      message: "Password must be at least 6 characters"
-                    }
+                    minLength: { value: 6, message: "Password must be at least 6 characters" },
                   })}
                 />
                 <button
                   type="button"
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={toggleShowPassword}
                 >
                   {showPassword ? (
                     <EyeOff className="size-5 text-base-content/40" />
@@ -137,16 +96,10 @@ const SignUpPage = () => {
                   )}
                 </button>
               </div>
-              {errors.password && (
-                <p className="text-error text-sm mt-1">{errors.password.message}</p>
-              )}
+              {errors.password && <p className="text-error text-sm mt-1">{errors.password.message}</p>}
             </div>
 
-            <button
-              type="submit"
-              className="btn btn-primary w-full"
-              disabled={isSigningUp}
-            >
+            <button type="submit" className="btn btn-primary w-full" disabled={isSigningUp}>
               {isSigningUp ? (
                 <>
                   <Loader2 className="size-5 animate-spin" />

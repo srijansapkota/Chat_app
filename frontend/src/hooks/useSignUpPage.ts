@@ -1,20 +1,20 @@
 import { useForm } from "react-hook-form";
 import { useAuthStore } from "../store/useAuthStore";
 import { usePasswordToggle } from "./usePasswordToggle";
-import type { LoginFormData } from "../types";
+import type { SignupFormData } from "../types";
 
-export const useLoginPage = () => {
+export const useSignUpPage = () => {
   const { showPassword, toggleShowPassword } = usePasswordToggle();
-  const { login, isLoggingIn } = useAuthStore();
+  const { signup, isSigningUp } = useAuthStore();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginFormData>();
+  } = useForm<SignupFormData>();
 
-  const onSubmit = (data: LoginFormData) => {
-    login(data);
+  const onSubmit = (data: SignupFormData) => {
+    signup(data);
   };
 
   return {
@@ -23,7 +23,7 @@ export const useLoginPage = () => {
     toggleShowPassword,
     register,
     handleSubmit,
-    isLoggingIn,
+    isSigningUp,
     onSubmit,
   };
 };

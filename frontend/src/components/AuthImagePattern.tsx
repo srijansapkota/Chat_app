@@ -1,8 +1,7 @@
 interface AuthImagePatternProps {
-  title: string,
-  subtitle: string,
+  title: string;
+  subtitle: string;
 }
-
 
 const AuthImagePattern = ({ title, subtitle }: AuthImagePatternProps) => {
   return (
