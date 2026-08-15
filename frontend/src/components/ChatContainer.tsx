@@ -1,13 +1,14 @@
-
-import ChatHeader from './ChatHeader';
-import MessageInput from './MessageInput';
-import MessageSkeleton from './skeletons/MessageSkeleton';
-import { formatMessageTime } from '../lib/utils';
-import { useChatContainer } from '../hooks/useChatContainer';
+import ChatHeader from "./ChatHeader";
+import MessageInput from "./MessageInput";
+import MessageSkeleton from "./skeletons/MessageSkeleton";
+import UserAvatar from "./UserAvatar";
+import { formatMessageTime } from "../lib/utils";
+import { useChatContainer } from "../hooks/useChatContainer";
 
 const ChatContainer = () => {
-
   const { messages, messageEndRef, authUser, selectedUser, isMessagesLoading } = useChatContainer();
+
+  if (!authUser || !selectedUser) return null;
 
   if (isMessagesLoading) {
     return (
@@ -24,47 +25,39 @@ const ChatContainer = () => {
       <ChatHeader />
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message) => (
-          <div
-            key={message._id}
-            className={`chat ${
-              message.senderId === authUser._id ? 'chat-end' : 'chat-start'
-            }`}
-            ref={messageEndRef}
-          >
-            <div className=" chat-image avatar">
-              <div className="size-10 rounded-full border">
-                <img
-                  src={
-                    message.senderId === authUser._id
-                      ? authUser.profilePic || '/avatar.png'
-                      : selectedUser.profilePic || '/avatar.png'
-                  }
-                  alt="profile pic"
+        {messages.map((message) => {
+          const isOwnMessage = message.senderId === authUser._id;
+          return (
+            <div
+              key={message._id}
+              className={`chat ${isOwnMessage ? "chat-end" : "chat-start"}`}
+              ref={messageEndRef}
+            >
+              <div className="chat-image avatar">
+                <UserAvatar
+                  profilePic={isOwnMessage ? authUser.profilePic : selectedUser.profilePic}
+                  fullName={isOwnMessage ? authUser.fullName : selectedUser.fullName}
                 />
               </div>
+              <div className="chat-header mb-1">
+                <time className="text-xs opacity-50 ml-1">
+                  {formatMessageTime(message.createdAt)}
+                </time>
+              </div>
+              <div className="chat-bubble flex flex-col">
+                {message.image && (
+                  <img src={message.image} alt="Attachment" className="sm:max-w-[200px] rounded-md mb-2" />
+                )}
+                {message.text && <p>{message.text}</p>}
+              </div>
             </div>
-            <div className="chat-header mb-1">
-              <time className="text-xs opacity-50 ml-1">
-                {formatMessageTime(message.createdAt)}
-              </time>
-            </div>
-            <div className="chat-bubble flex flex-col">
-              {message.image && (
-                <img
-                  src={message.image}
-                  alt="Attachment"
-                  className="sm:max-w-[200px] rounded-md mb-2"
-                />
-              )}
-              {message.text && <p>{message.text}</p>}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <MessageInput />
     </div>
   );
 };
+
 export default ChatContainer;
