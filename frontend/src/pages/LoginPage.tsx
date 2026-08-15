@@ -1,24 +1,12 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { useAuthStore } from "../store/useAuthStore";
+
 import AuthImagePattern from "../components/AuthImagePattern";
 import { Link } from "react-router-dom";
 import { Eye, EyeOff, Loader2, Lock, Mail, MessageSquare } from "lucide-react";
+import { useLoginPage } from "../hooks/useLoginPage";
 
 const LoginPage = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoggingIn } = useAuthStore();
-  
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
 
-  const onSubmit = (data) => {
-    login(data);
-  };
-
+  const { errors, showPassword, register, handleSubmit, setShowPassword, login, isLoggingIn, onSubmit } = useLoginPage();
   return (
     <div className="h-screen grid lg:grid-cols-2">
       <div className="flex flex-col justify-center items-center p-6 sm:p-12">
