@@ -1,15 +1,14 @@
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import http from 'http';
 import express from 'express';
 import { config } from 'dotenv';
-
 
 config();
 
 const app = express();
 const server = http.createServer(app);
 
-const allowedOrigins = (process.env.CLIENT_ORIGINS || 'http://localhost:5173')
+const allowedOrigins: string[] = (process.env.CLIENT_ORIGINS || 'http://localhost:5173')
   .split(',')
   .map((o) => o.trim());
 
@@ -19,27 +18,26 @@ const io = new Server(server, {
   },
 });
 
-export function getSocketId(userId) {
+const userSocketMap: Record<string, string> = {};
+
+export function getSocketId(userId?: string | null): string | null {
   if (!userId) return null;
   return userSocketMap[String(userId)] || null;
 }
 
-
-const userSocketMap = {}; 
-
-io.on('connection', (socket) => {
+io.on('connection', (socket: Socket) => {
   console.log('A user connected', socket.id);
 
   const userId = socket.handshake.query.userId
     ? String(socket.handshake.query.userId)
     : null;
 
-  socket.on('typing', ({ receiverId }) => {
+  socket.on('typing', ({ receiverId }: { receiverId: string }) => {
     const receiverSocketId = getSocketId(receiverId);
     if (receiverSocketId) io.to(receiverSocketId).emit('typing', { senderId: userId });
   });
 
-  socket.on('stopTyping', ({ receiverId }) => {
+  socket.on('stopTyping', ({ receiverId }: { receiverId: string }) => {
     const receiverSocketId = getSocketId(receiverId);
     if (receiverSocketId) io.to(receiverSocketId).emit('stopTyping', { senderId: userId });
   });

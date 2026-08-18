@@ -1,0 +1,102 @@
+import { Request, Response } from 'express';
+import User from '../models/user.model.js';
+import Message from '../models/message.model.js';
+import cloudinary from '../lib/cloudinary.js';
+import { getSocketId, io } from '../lib/socket.js';
+
+interface SendMessageBody {
+  text?: string;
+  image?: string;
+}
+
+export const getUsersForSidebar = async (req: Request, res: Response) => {
+  try {
+    const loggedInUserId = req.user!._id;
+    const filteredUsers = await User.find({
+      _id: { $ne: loggedInUserId },
+    }).select('-password');
+
+    res.status(200).json(filteredUsers);
+  } catch (error) {
+    console.error('Error in getUsersForSidebar: ', error);
+    res.status(500).json({ message: 'Failed to fetch users' });
+  }
+};
+
+export const getMessages = async (req: Request<{ id: string }>, res: Response) => {
+  try {
+    const { id: userToChatId } = req.params;
+    const myId = req.user!._id;
+
+    const messages = await Message.find({
+      $or: [
+        { senderId: myId, receiverId: userToChatId },
+        { senderId: userToChatId, receiverId: myId },
+      ],
+    });
+
+    res.status(200).json(messages);
+  } catch (error: any) {
+    console.log('Error in getMessages controller: ', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const sendMessage = async (
+  req: Request<{ id: string }, {}, SendMessageBody>,
+  res: Response
+) => {
+  try {
+    const { text, image } = req.body;
+    const { id: receiverId } = req.params;
+    const senderId = req.user!._id;
+
+    let imageUrl;
+    if (image) {
+      const uploadResponse = await cloudinary.uploader.upload(image);
+      imageUrl = uploadResponse.secure_url;
+    }
+
+    const newMessage = new Message({
+      senderId,
+      receiverId,
+      text,
+      image: imageUrl,
+    });
+
+    await newMessage.save();
+
+    const receiverSocketId = getSocketId(String(receiverId));
+    if (receiverSocketId) {
+      newMessage.status = 'delivered';
+      await newMessage.save();
+      io.to(receiverSocketId).emit('newMessage', newMessage);
+    }
+
+    res.status(201).json(newMessage);
+  } catch (error: any) {
+    console.log('Error in sendMessage controller: ', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const markMessageAsRead = async (req: Request<{ id: string }>, res: Response) => {
+  try {
+    const { id: senderId } = req.params;
+    const currentUserId = req.user!._id;
+
+    await Message.updateMany(
+      { senderId, receiverId: currentUserId, status: { $ne: 'read' } },
+      { $set: { status: 'read' } }
+    );
+    const senderSocketId = getSocketId(String(senderId));
+    if (senderSocketId) {
+      io.to(senderSocketId).emit('messagesRead', { senderId: currentUserId });
+    }
+
+    res.status(200).json({ message: 'Messages marked as read' });
+  } catch (error: any) {
+    console.log('Error in markMessageAsRead controller: ', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
