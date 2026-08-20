@@ -3,6 +3,7 @@ import { generateToken } from '../lib/utils.js';
 import User from '../models/user.model.js';
 import bcrypt from 'bcryptjs';
 import cloudinary from '../lib/cloudinary.js';
+import { Types } from 'mongoose';
 
 interface SignupBody {
   email: string;
@@ -49,7 +50,7 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
     if (newUser) {
       await newUser.save();
 
-      const token = generateToken(newUser._id, res);
+      const token = generateToken(newUser._id as Types.ObjectId, res);
       res.status(201).json({
         _id: newUser._id,
         fullName: newUser.fullName,
@@ -86,7 +87,7 @@ export const login = async (req: Request<{}, {}, LoginBody>, res: Response) => {
       return res.status(400).json({ message: 'Invalid password' });
     }
 
-    const token = generateToken(user._id, res);
+    const token = generateToken(user._id as Types.ObjectId, res);
 
     res.status(200).json({
       _id: user._id,
