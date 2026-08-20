@@ -2,11 +2,11 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index.ts",
+  "main": "dist/index.ts",
   "scripts": {
     "dev": "nodemon --exec tsx src/index.ts",
-    "start": "node src/index.ts",
-    "build": "node index.ts"
+    "start": "tsc",
+    "build": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
