@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import { AxiosError } from "axios";
 import { axiosInstance } from "../lib/axios";
 import { useAuthStore } from "./useAuthStore";
-import type { User, Message } from "../types";
+import type { User, Message, ChatState } from "../types";
 
 const getErrorMessage = (error: unknown, fallback: string): string => {
   if (error instanceof AxiosError) {
@@ -13,20 +13,8 @@ const getErrorMessage = (error: unknown, fallback: string): string => {
 };
 
 let messageListener: ((message: Message) => void) | null = null;
+let stopTypingListener: ((data: { receiverId: string }) => void) | null = null;
 
-interface ChatState {
-  messages: Message[];
-  users: User[];
-  selectedUser: User | null;
-  isUsersLoading: boolean;
-  isMessagesLoading: boolean;
-  getUsers: () => Promise<void>;
-  getMessages: (userId: string) => Promise<void>;
-  sendMessage: (messageData: { text: string; image: string | null }) => Promise<void>;
-  subscribeToMessages: () => void;
-  unsubscribeFromMessages: () => void;
-  setSelectedUser: (user: User | null) => void;
-}
 
 export const useChatStore = create<ChatState>((set, get) => ({
   messages: [],

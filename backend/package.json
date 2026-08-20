@@ -2,10 +2,11 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index.js",
+  "main": "dist/index.ts",
   "scripts": {
-    "dev": "nodemon src/index.js",
-    "start": "node src/index.js"
+    "dev": "nodemon --exec tsx src/index.ts",
+    "start": "tsc",
+    "build": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
@@ -30,6 +31,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.2.0",
     "nodemon": "^3.1.10",
+    "tsx": "^4.23.12",
     "typescript": "^7.0.2"
   }
 }

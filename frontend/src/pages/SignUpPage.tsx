@@ -2,11 +2,12 @@ import { Link } from "react-router-dom";
 import { Eye, EyeOff, Loader2, Lock, Mail, MessageSquare, User } from "lucide-react";
 import AuthImagePattern from "../components/AuthImagePattern";
 import { useSignUpPage } from "../hooks/useSignUpPage";
+import { useState } from "react";
 
 const SignUpPage = () => {
-  const { errors, showPassword, toggleShowPassword, register, handleSubmit, isSigningUp, onSubmit } =
+  const { errors, register, handleSubmit, isSigningUp, onSubmit } =
     useSignUpPage();
-
+  const [showPassword, setShowPassword] = useState(false);
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
       <div className="flex flex-col justify-center items-center p-6 sm:p-12">
@@ -87,7 +88,7 @@ const SignUpPage = () => {
                 <button
                   type="button"
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={toggleShowPassword}
+                  onClick={()=>setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
                     <EyeOff className="size-5 text-base-content/40" />

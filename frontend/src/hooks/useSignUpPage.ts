@@ -1,10 +1,8 @@
 import { useForm } from "react-hook-form";
 import { useAuthStore } from "../store/useAuthStore";
-import { usePasswordToggle } from "./usePasswordToggle";
 import type { SignupFormData } from "../types";
 
 export const useSignUpPage = () => {
-  const { showPassword, toggleShowPassword } = usePasswordToggle();
   const { signup, isSigningUp } = useAuthStore();
 
   const {
@@ -19,8 +17,6 @@ export const useSignUpPage = () => {
 
   return {
     errors,
-    showPassword,
-    toggleShowPassword,
     register,
     handleSubmit,
     isSigningUp,
