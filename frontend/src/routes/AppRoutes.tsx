@@ -13,6 +13,7 @@ const AppRoutes = () => {
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/settings" element={<SettingsPage />} />
       </Route>
 
       <Route element={<PublicRoute />}>
@@ -20,7 +21,7 @@ const AppRoutes = () => {
         <Route path="/signup" element={<SignUpPage />} />
       </Route>
 
-      <Route path="/settings" element={<SettingsPage />} />
+      
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
